@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 public class CostCategory {
     private Long id;
+    private Long userId;
     private String name;
     private CostCategoryType categoryType;
 

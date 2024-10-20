@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @Builder
 public class BankAccount {
     private Long id;
+    private Long userId;
     private String name;
     private BigDecimal balance;
 }
