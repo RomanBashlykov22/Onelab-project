@@ -9,5 +9,8 @@
 ### Использованные технологии
 - Java 17
 - Spring Boot 3.3.4
+- Spring Data JPA
+- H2 Database
+- AOP
 - Lombok
 - Maven

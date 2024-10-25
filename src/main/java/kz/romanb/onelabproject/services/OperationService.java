@@ -8,19 +8,21 @@ import kz.romanb.onelabproject.exceptions.NotEnoughMoneyException;
 import kz.romanb.onelabproject.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OperationService {
     private final OperationRepository operationRepository;
     private final BankAccountService bankAccountService;
-    private final CostCategoryService costCategoryService;
 
+    @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRED)
     public void createOperation(BankAccount bankAccount, CostCategory costCategory, BigDecimal amount) {
         BigDecimal newBalance = bankAccount.getBalance();
         if (costCategory.getCategoryType().equals(CostCategory.CostCategoryType.EXPENSE)) {
@@ -41,67 +43,53 @@ public class OperationService {
         );
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public Optional<Operation> findOperationById(Long id) {
         return operationRepository.findById(id);
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperations() {
-        List<Operation> operations = operationRepository.findAll();
-        operations.forEach(o -> {
-            o.setBankAccount(bankAccountService.findById(o.getBankAccount().getId()));
-            o.setCostCategory(costCategoryService.findById(o.getCostCategory().getId()));
-        });
-        return operations;
+        return operationRepository.findAll();
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsByUser(User user) {
         List<Operation> operations = new ArrayList<>();
         for (BankAccount b: user.getBankAccounts()) {
-            operations.addAll(operationRepository.findAllOperationsByBankAccount(b));
+            operations.addAll(operationRepository.findAllByBankAccount(b));
         }
-        operations.forEach(o -> {
-            o.setBankAccount(bankAccountService.findById(o.getBankAccount().getId()));
-            o.setCostCategory(costCategoryService.findById(o.getCostCategory().getId()));
-        });
         return operations.stream()
                 .sorted(Comparator.comparing(Operation::getDate).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsByCostCategory(CostCategory costCategory) {
-        List<Operation> operations = operationRepository.findAllOperationsByCostCategory(costCategory);
-        operations.forEach(o -> {
-            o.setBankAccount(bankAccountService.findById(o.getBankAccount().getId()));
-            o.setCostCategory(costCategoryService.findById(o.getCostCategory().getId()));
-        });
+        List<Operation> operations = operationRepository.findAllByCostCategory(costCategory);
         return operations.stream()
                 .sorted(Comparator.comparing(Operation::getDate).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsForDate(LocalDate date) {
-        List<Operation> operations = operationRepository.findAllOperationsForDate(date);
-        operations.forEach(o -> {
-            o.setBankAccount(bankAccountService.findById(o.getBankAccount().getId()));
-            o.setCostCategory(costCategoryService.findById(o.getCostCategory().getId()));
-        });
+        List<Operation> operations = operationRepository.findAllByDate(date);
         return operations.stream()
                 .sorted(Comparator.comparing(Operation::getDate).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsBetweenDates(LocalDate startDate, LocalDate endDate) {
-        List<Operation> operations = operationRepository.findAllOperationsBetweenDates(startDate, endDate);
-        operations.forEach(o -> {
-            o.setBankAccount(bankAccountService.findById(o.getBankAccount().getId()));
-            o.setCostCategory(costCategoryService.findById(o.getCostCategory().getId()));
-        });
+        List<Operation> operations = operationRepository.findAllByDateBetween(startDate, endDate);
         return operations.stream()
                 .sorted(Comparator.comparing(Operation::getDate).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public BigDecimal getSum(List<Operation> operations, CostCategory.CostCategoryType categoryType) {
         return operations.stream()
                 .filter(o -> o.getCostCategory().getCategoryType().equals(categoryType))

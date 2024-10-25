@@ -4,7 +4,6 @@ import kz.romanb.onelabproject.entities.BankAccount;
 import kz.romanb.onelabproject.entities.CostCategory;
 import kz.romanb.onelabproject.entities.Operation;
 import kz.romanb.onelabproject.entities.User;
-import kz.romanb.onelabproject.repositories.OperationRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -50,7 +49,11 @@ public class LoggingAspect {
 
     @Before(value = "beforeCreatingBankAccountPointcut(user, bankAccount)")
     public void beforeCreatingBankAccount(User user, BankAccount bankAccount){
-        log.debug("Начальный балансе на счете составляет " + bankAccount.getBalance().toString());
+        log.debug("""
+                Попытка пользователя {} создать новый счет
+                Начальный счет на балансе - {}
+                """,
+                user.getName(), bankAccount.getBalance().toString());
     }
 
     @Around(value = "aroundSaveOperationToDBPointcut(operation)")

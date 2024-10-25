@@ -31,30 +31,30 @@ public class OnelabProjectApplication {
                 BankAccount.builder()
                         .name("Forte")
                         .balance(new BigDecimal(1107))
-                        .userId(user.getId())
+                        .user(user)
                         .build()
         );
 //        bankAccountService.addNewBankAccountToUser(user,
 //                BankAccount.builder()
 //                        .name("Forte")
 //                        .balance(new BigDecimal(1939))
-//                        .userId(user.getId())
+//                        .user(user)
 //                        .build()
 //        );
 
-        User roman = userService.findUserById(1L);
+        User roman = userService.findUserById(1L).get();
         bankAccountService.addNewBankAccountToUser(roman,
                 BankAccount.builder()
                         .name("Forte")
                         .balance(new BigDecimal(1939))
-                        .userId(roman.getId())
+                        .user(roman)
                         .build()
         );
         costCategoryService.addNewCostCategoryToUser(roman,
                 CostCategory.builder()
                         .name("Study")
                         .categoryType(CostCategory.CostCategoryType.EXPENSE)
-                        .userId(roman.getId())
+                        .user(roman)
                         .build()
         );
 
@@ -62,13 +62,16 @@ public class OnelabProjectApplication {
 
         System.out.println("---------------------------------------");
 
-        User alex = userService.findUserById(2L);
+        User alex = userService.findUserById(2L).get();
 
         getUserInfo(alex);
 
         operationService.createOperation(roman.getBankAccounts().get(0), roman.getCostCategories().get(1), new BigDecimal(515));
+        roman = userService.findUserById(roman.getId()).get();
         operationService.createOperation(roman.getBankAccounts().get(1), roman.getCostCategories().get(2), new BigDecimal(1000));
+        roman = userService.findUserById(roman.getId()).get();
         operationService.createOperation(roman.getBankAccounts().get(0), roman.getCostCategories().get(1), new BigDecimal(8866));
+        roman = userService.findUserById(roman.getId()).get();
 
         System.out.println("Все операции: ");
         List<Operation> allOperations = operationService.findAllOperations();
@@ -101,6 +104,9 @@ public class OnelabProjectApplication {
         System.out.println("Расходы - " + operationService.getSum(romanDatesOperations, CostCategory.CostCategoryType.EXPENSE));
         System.out.println("Доходы - " + operationService.getSum(romanDatesOperations, CostCategory.CostCategoryType.INCOME));
         System.out.println();
+
+//        roman = userService.findUserById(roman.getId());
+//        getUserInfo(roman);
     }
 
     private static void getUserInfo(User user) {
