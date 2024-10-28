@@ -4,6 +4,7 @@ import kz.romanb.onelabproject.entities.BankAccount;
 import kz.romanb.onelabproject.entities.CostCategory;
 import kz.romanb.onelabproject.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
+import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.CostCategoryRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.*;
 class CostCategoryServiceTest {
     @Mock
     CostCategoryRepository costCategoryRepository;
+    @Mock
+    KafkaService kafkaService;
     @InjectMocks
     CostCategoryService costCategoryService;
 
@@ -110,7 +113,7 @@ class CostCategoryServiceTest {
     @Test
     void testFindByIdWhenCostCategoryDoesNotExists() {
         Long costCategoryId = 1L;
-        when(costCategoryRepository.findById(costCategoryId)).thenThrow(new DBRecordNotFoundException("Счет не существует"));
+        when(costCategoryRepository.findById(costCategoryId)).thenReturn(Optional.empty());
         assertThrows(DBRecordNotFoundException.class, () -> costCategoryService.findById(costCategoryId));
         verify(costCategoryRepository, times(1)).findById(costCategoryId);
     }

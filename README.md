@@ -12,5 +12,7 @@
 - Spring Data JPA
 - H2 Database
 - AOP
+- Kafka
 - Lombok
+- JUnit5 & Mockito
 - Maven

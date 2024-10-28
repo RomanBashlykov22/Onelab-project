@@ -4,6 +4,7 @@ import kz.romanb.onelabproject.entities.BankAccount;
 import kz.romanb.onelabproject.entities.CostCategory;
 import kz.romanb.onelabproject.entities.Operation;
 import kz.romanb.onelabproject.entities.User;
+import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
 import kz.romanb.onelabproject.exceptions.NotEnoughMoneyException;
 import kz.romanb.onelabproject.repositories.*;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,11 @@ public class OperationService {
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public Optional<Operation> findOperationById(Long id) {
-        return operationRepository.findById(id);
+        Optional<Operation> operationOptional = operationRepository.findById(id);
+        if(operationOptional.isEmpty()){
+            throw new DBRecordNotFoundException("Операция с id " + id + " не найдена");
+        }
+        return operationOptional;
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
@@ -74,10 +79,7 @@ public class OperationService {
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsForDate(LocalDate date) {
-        List<Operation> operations = operationRepository.findAllByDate(date);
-        return operations.stream()
-                .sorted(Comparator.comparing(Operation::getDate).reversed())
-                .toList();
+        return operationRepository.findAllByDate(date);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)

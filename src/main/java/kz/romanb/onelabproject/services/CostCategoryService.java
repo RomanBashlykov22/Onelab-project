@@ -3,6 +3,7 @@ package kz.romanb.onelabproject.services;
 import kz.romanb.onelabproject.entities.CostCategory;
 import kz.romanb.onelabproject.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
+import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.CostCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CostCategoryService {
     private final CostCategoryRepository costCategoryRepository;
+    private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<CostCategory> getAllUserCostCategories(User user){
@@ -35,6 +37,7 @@ public class CostCategoryService {
             throw new IllegalArgumentException("Не указан тип категории");
         }
         CostCategory saved = costCategoryRepository.save(costCategory);
+        kafkaService.sendMessage(user, String.format("Добавление категории %s типа %s", saved.getName(), saved.getCategoryType().name()));
         user.getCostCategories().add(saved);
         return saved;
     }

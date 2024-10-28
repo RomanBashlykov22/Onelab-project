@@ -4,6 +4,7 @@ import kz.romanb.onelabproject.entities.BankAccount;
 import kz.romanb.onelabproject.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
 import kz.romanb.onelabproject.exceptions.NotEnoughMoneyException;
+import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.BankAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @Transactional
 public class BankAccountService {
     private final BankAccountRepository bankAccountRepository;
+    private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<BankAccount> getAllUserAccounts(User user){
@@ -38,6 +40,7 @@ public class BankAccountService {
             throw new NotEnoughMoneyException("Баланс на счете меньше нуля");
         }
         BankAccount saved = bankAccountRepository.save(bankAccount);
+        kafkaService.sendMessage(user, String.format("Добавление банковского счета %s с начальным балансом %s", saved.getName(), saved.getBalance().toString()));
         user.getBankAccounts().add(saved);
         return saved;
     }

@@ -2,6 +2,7 @@ package kz.romanb.onelabproject.services;
 
 import kz.romanb.onelabproject.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
+import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,8 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
     @Mock
     UserRepository userRepository;
+    @Mock
+    KafkaService kafkaService;
     @InjectMocks
     UserService userService;
 
@@ -80,7 +83,7 @@ class UserServiceTest {
     @Test
     void testFindUserByIdWhenUserDoesNotExists() {
         Long userId = 1L;
-        when(userRepository.findById(userId)).thenThrow(new DBRecordNotFoundException("Пользователь не существует"));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
         assertThrows(DBRecordNotFoundException.class, () -> userService.findUserById(userId));
         verify(userRepository, times(1)).findById(userId);
     }

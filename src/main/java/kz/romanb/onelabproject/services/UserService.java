@@ -2,6 +2,7 @@ package kz.romanb.onelabproject.services;
 
 import kz.romanb.onelabproject.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
+import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,13 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final KafkaService kafkaService;
 
     @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRES_NEW)
     public User addNewUser(User user) {
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        kafkaService.sendMessage(saved, "Создание аккаунта");
+        return saved;
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
