@@ -1,136 +1,88 @@
 package kz.romanb.onelabproject;
 
-import kz.romanb.onelabproject.entities.BankAccount;
-import kz.romanb.onelabproject.entities.CostCategory;
-import kz.romanb.onelabproject.entities.Operation;
-import kz.romanb.onelabproject.entities.User;
-import kz.romanb.onelabproject.services.BankAccountService;
-import kz.romanb.onelabproject.services.CostCategoryService;
-import kz.romanb.onelabproject.services.OperationService;
-import kz.romanb.onelabproject.services.UserService;
+import kz.romanb.onelabproject.models.entities.*;
+import kz.romanb.onelabproject.repositories.BankAccountRepository;
+import kz.romanb.onelabproject.repositories.CostCategoryRepository;
+import kz.romanb.onelabproject.repositories.OperationRepository;
+import kz.romanb.onelabproject.repositories.UserRepository;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "kz.romanb.onelabproject")
 public class OnelabProjectApplication {
 
     public static void main(String[] args) {
-        var context = SpringApplication.run(OnelabProjectApplication.class, args);
-        OperationService operationService = context.getBean(OperationService.class);
-        UserService userService = context.getBean(UserService.class);
-        BankAccountService bankAccountService = context.getBean(BankAccountService.class);
-        CostCategoryService costCategoryService = context.getBean(CostCategoryService.class);
-
-        User user = userService.addNewUser(User.builder().name("Grisha").build());
-//        User user = userService.findUserById(3L);
-        bankAccountService.addNewBankAccountToUser(user,
-                BankAccount.builder()
-                        .name("Forte")
-                        .balance(new BigDecimal(1107))
-                        .user(user)
-                        .build()
-        );
-//        bankAccountService.addNewBankAccountToUser(user,
-//                BankAccount.builder()
-//                        .name("Forte")
-//                        .balance(new BigDecimal(1939))
-//                        .user(user)
-//                        .build()
-//        );
-
-        User roman = userService.findUserById(1L).get();
-        bankAccountService.addNewBankAccountToUser(roman,
-                BankAccount.builder()
-                        .name("Forte")
-                        .balance(new BigDecimal(1939))
-                        .user(roman)
-                        .build()
-        );
-        costCategoryService.addNewCostCategoryToUser(roman,
-                CostCategory.builder()
-                        .name("Study")
-                        .categoryType(CostCategory.CostCategoryType.EXPENSE)
-                        .user(roman)
-                        .build()
-        );
-
-        getUserInfo(roman);
-
-        System.out.println("---------------------------------------");
-
-        User alex = userService.findUserById(2L).get();
-
-        getUserInfo(alex);
-
-        operationService.createOperation(roman.getBankAccounts().get(0), roman.getCostCategories().get(1), new BigDecimal(515));
-        roman = userService.findUserById(roman.getId()).get();
-        operationService.createOperation(roman.getBankAccounts().get(1), roman.getCostCategories().get(2), new BigDecimal(1000));
-        roman = userService.findUserById(roman.getId()).get();
-        operationService.createOperation(roman.getBankAccounts().get(0), roman.getCostCategories().get(1), new BigDecimal(8866));
-        roman = userService.findUserById(roman.getId()).get();
-
-        System.out.println("Все операции: ");
-        List<Operation> allOperations = operationService.findAllOperations();
-        allOperations.forEach(System.out::println);
-        System.out.println();
-
-        System.out.println("Все операции пользователя " + roman.getName());
-        List<Operation> romanOperations = operationService.findAllOperationsByUser(roman);
-        romanOperations.forEach(System.out::println);
-        System.out.println("Расходы - " + operationService.getSum(romanOperations, CostCategory.CostCategoryType.EXPENSE));
-        System.out.println("Доходы - " + operationService.getSum(romanOperations, CostCategory.CostCategoryType.INCOME));
-        System.out.println();
-
-        System.out.println("Все операции пользователя " + roman.getName() + " по категории " + roman.getCostCategories().get(1).getName());
-        List<Operation> romanCostCategoryOperations = operationService.findAllOperationsByCostCategory(roman.getCostCategories().get(1));
-        romanCostCategoryOperations.forEach(System.out::println);
-        System.out.println("Сумма - " + operationService.getSum(romanCostCategoryOperations, roman.getCostCategories().get(1).getCategoryType()));
-        System.out.println();
-
-        System.out.println("Все операции пользователя " + roman.getName() + " на 19.10.2024: ");
-        List<Operation> romanDateOperations = operationService.findAllOperationsForDate(LocalDate.of(2024, 10, 19));
-        romanDateOperations.forEach(System.out::println);
-        System.out.println("Расходы - " + operationService.getSum(romanDateOperations, CostCategory.CostCategoryType.EXPENSE));
-        System.out.println("Доходы - " + operationService.getSum(romanDateOperations, CostCategory.CostCategoryType.INCOME));
-        System.out.println();
-
-        System.out.println("Все операции пользователя " + roman.getName() + " c 03.10.2024 по 13.10.2024: ");
-        List<Operation> romanDatesOperations = operationService.findAllOperationsBetweenDates(LocalDate.of(2024, 10, 3), LocalDate.of(2024, 10, 13));
-        romanDatesOperations.forEach(System.out::println);
-        System.out.println("Расходы - " + operationService.getSum(romanDatesOperations, CostCategory.CostCategoryType.EXPENSE));
-        System.out.println("Доходы - " + operationService.getSum(romanDatesOperations, CostCategory.CostCategoryType.INCOME));
-        System.out.println();
-
-//        roman = userService.findUserById(roman.getId());
-//        getUserInfo(roman);
+        SpringApplication.run(OnelabProjectApplication.class, args);
     }
 
-    private static void getUserInfo(User user) {
-        System.out.println("Пользователь " + user.getId() + " - " + user.getName());
-        System.out.println();
+    @Bean
+    public CommandLineRunner dataLoader(
+            UserRepository userRepository,
+            BankAccountRepository bankAccountRepository,
+            CostCategoryRepository costCategoryRepository,
+            OperationRepository operationRepository,
+            PasswordEncoder passwordEncoder){
+        return args -> {
+            User user = User.builder()
+                    .email("roman.bash14@mail.ru")
+                    .username("ramioris")
+                    .password(passwordEncoder.encode("123"))
+                    .roles(Set.of(Role.ADMIN, Role.USER))
+                    .isCredentialsNonExpired(true)
+                    .isEnabled(true)
+                    .isAccountNonLocked(true)
+                    .isAccountNonExpired(true)
+                    .build();
+            userRepository.save(user);
 
-        System.out.println("Счета: ");
-        user.getBankAccounts().stream()
-                .map(b -> b.getId() + " - " + b.getName() + ". На балансе - " + b.getBalance().toString())
-                .forEach(System.out::println);
-        System.out.println();
+            BankAccount bankAccount1 = BankAccount.builder()
+                    .user(user)
+                    .name("Kaspi")
+                    .balance(new BigDecimal("12266.12"))
+                    .build();
+            BankAccount bankAccount2 = BankAccount.builder()
+                    .user(user)
+                    .name("Jusan")
+                    .balance(new BigDecimal("3668.13"))
+                    .build();
+            bankAccountRepository.save(bankAccount1);
+            bankAccountRepository.save(bankAccount2);
 
-        System.out.println("Категории расходов: ");
-        user.getCostCategories().stream()
-                .filter(c -> c.getCategoryType().equals(CostCategory.CostCategoryType.EXPENSE))
-                .map(c -> c.getId() + " - " + c.getName())
-                .forEach(System.out::println);
-        System.out.println();
+            CostCategory costCategory1 = CostCategory.builder()
+                    .name("Sport")
+                    .categoryType(CostCategory.CostCategoryType.EXPENSE)
+                    .user(user)
+                    .build();
+            CostCategory costCategory2 = CostCategory.builder()
+                    .user(user)
+                    .categoryType(CostCategory.CostCategoryType.INCOME)
+                    .name("Salary")
+                    .build();
+            costCategoryRepository.save(costCategory1);
+            costCategoryRepository.save(costCategory2);
 
-        System.out.println("Категории доходов: ");
-        user.getCostCategories().stream()
-                .filter(c -> c.getCategoryType().equals(CostCategory.CostCategoryType.INCOME))
-                .map(c -> c.getId() + " - " + c.getName())
-                .forEach(System.out::println);
-        System.out.println();
+            Operation operation1 = Operation.builder()
+                    .bankAccount(bankAccount1)
+                    .costCategory(costCategory1)
+                    .amount(new BigDecimal(6000))
+                    .date(LocalDate.of(2024, 10, 13))
+                    .build();
+            Operation operation2 = Operation.builder()
+                    .bankAccount(bankAccount1)
+                    .costCategory(costCategory2)
+                    .amount(new BigDecimal("9831.07"))
+                    .date(LocalDate.of(2024, 10, 1))
+                    .build();
+            operationRepository.save(operation1);
+            operationRepository.save(operation2);
+        };
     }
 }

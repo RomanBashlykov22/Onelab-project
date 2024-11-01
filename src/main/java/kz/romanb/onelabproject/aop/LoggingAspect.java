@@ -1,9 +1,12 @@
 package kz.romanb.onelabproject.aop;
 
-import kz.romanb.onelabproject.entities.BankAccount;
-import kz.romanb.onelabproject.entities.CostCategory;
-import kz.romanb.onelabproject.entities.Operation;
-import kz.romanb.onelabproject.entities.User;
+import kz.romanb.onelabproject.models.dto.BankAccountDto;
+import kz.romanb.onelabproject.models.dto.CostCategoryDto;
+import kz.romanb.onelabproject.models.dto.RegistrationRequest;
+import kz.romanb.onelabproject.models.entities.BankAccount;
+import kz.romanb.onelabproject.models.entities.CostCategory;
+import kz.romanb.onelabproject.models.entities.Operation;
+import kz.romanb.onelabproject.models.entities.User;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -14,51 +17,43 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class LoggingAspect {
-    @Pointcut("execution(* kz.romanb.onelabproject..*(..))")
-    public void afterThrowingForAllMethodsPointcut(){}
+    @Pointcut("execution(* kz.romanb.onelabproject.services.UserService.registration(kz.romanb.onelabproject.models.dto.RegistrationRequest)) && args(request)")
+    public void aroundRegistrationPointcut(RegistrationRequest request){}
 
-    @Pointcut("execution(* kz.romanb.onelabproject.services.UserService.addNewUser(kz.romanb.onelabproject.entities.User)) && args(user)")
-    public void aroundCreatingNewUserPointcut(User user){}
+    @Pointcut("execution(* kz.romanb.onelabproject.services.CostCategoryService.addNewCostCategoryToUser(..)) && args(userId, costCategoryDto)")
+    public void afterCreatingCostCategoryPointcut(Long userId, CostCategoryDto costCategoryDto){}
 
-    @Pointcut("execution(* kz.romanb.onelabproject.services.CostCategoryService.addNewCostCategoryToUser(..)) && args(user, costCategory)")
-    public void afterCreatingCostCategoryPointcut(User user, CostCategory costCategory){}
-
-    @Pointcut("execution(* kz.romanb.onelabproject.services.BankAccountService.addNewBankAccountToUser(..)) && args(user, bankAccount)")
-    public void beforeCreatingBankAccountPointcut(User user, BankAccount bankAccount){}
+    @Pointcut("execution(* kz.romanb.onelabproject.services.BankAccountService.addNewBankAccountToUser(..)) && args(userId, bankAccountDto)")
+    public void beforeCreatingBankAccountPointcut(Long userId, BankAccountDto bankAccountDto){}
 
     @Pointcut("execution(* kz.romanb.onelabproject.repositories.OperationRepository.save(..)) && args(operation)")
     public void aroundSaveOperationToDBPointcut(Operation operation){}
 
-    @AfterThrowing(value = "afterThrowingForAllMethodsPointcut()", throwing = "ex")
-    public void logAfterThrowing(JoinPoint joinPoint, Exception ex) {
-        log.error("При выполнении метода " + joinPoint.getSignature().getName() + " произошла ошибка: {}", ex.getMessage());
-    }
-
-    @Around(value = "aroundCreatingNewUserPointcut(user)")
-    public User aroundCreatingNewUser(ProceedingJoinPoint joinPoint, User user) throws Throwable{
+    @Around(value = "aroundRegistrationPointcut(request)")
+    public User aroundRegistration(ProceedingJoinPoint joinPoint, RegistrationRequest request) throws Throwable{
         log.debug("Попытка создать нового пользователя");
         User retVal = (User)joinPoint.proceed();
-        log.info("Пользователь " + retVal.getId() + " " + retVal.getName() + " успешно создан");
+        log.info("Пользователь с id" + retVal.getId() + " - " + retVal.getEmail() + " успешно создан");
         return retVal;
     }
 
-    @After(value = "afterCreatingCostCategoryPointcut(user, costCategory)")
-    public void afterCreatingCostCategory(User user, CostCategory costCategory){
-        log.info("Пользователь с id " + user.getId() + " создал новую категорию типа " + costCategory.getCategoryType().name());
+    @After(value = "afterCreatingCostCategoryPointcut(userId, costCategoryDto)")
+    public void afterCreatingCostCategory(Long userId, CostCategoryDto costCategoryDto){
+        log.info("Пользователь с id " + userId + " создал новую категорию типа " + costCategoryDto.getCategoryType().name());
     }
 
-    @Before(value = "beforeCreatingBankAccountPointcut(user, bankAccount)")
-    public void beforeCreatingBankAccount(User user, BankAccount bankAccount){
+    @Before(value = "beforeCreatingBankAccountPointcut(userId, bankAccountDto)")
+    public void beforeCreatingBankAccount(Long userId, BankAccountDto bankAccountDto){
         log.debug("""
-                Попытка пользователя {} создать новый счет
+                Попытка пользователя с id {} создать новый счет
                 Начальный счет на балансе - {}
                 """,
-                user.getName(), bankAccount.getBalance().toString());
+                userId, bankAccountDto.getBalance().toString());
     }
 
     @Around(value = "aroundSaveOperationToDBPointcut(operation)")
     public Operation aroundSaveOperationToDB(ProceedingJoinPoint joinPoint, Operation operation) throws Throwable{
-        log.info("Создана операция " + operation.getId() + " в размере " + operation.getAmount().toString() + " на категорию " + operation.getCostCategory().getName() + " со счета " + operation.getBankAccount().getName());
+        log.info("Создана операция в размере " + operation.getAmount().toString() + " на категорию " + operation.getCostCategory().getName() + " со счета " + operation.getBankAccount().getName());
         Operation o = (Operation) joinPoint.proceed();
         log.info("Операция " + o.getId() + " сохранена");
         return o;

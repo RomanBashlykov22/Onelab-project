@@ -1,7 +1,8 @@
 package kz.romanb.onelabproject.services;
 
-import kz.romanb.onelabproject.entities.BankAccount;
-import kz.romanb.onelabproject.entities.User;
+import kz.romanb.onelabproject.models.dto.BankAccountDto;
+import kz.romanb.onelabproject.models.entities.BankAccount;
+import kz.romanb.onelabproject.models.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
 import kz.romanb.onelabproject.exceptions.NotEnoughMoneyException;
 import kz.romanb.onelabproject.kafka.KafkaService;
@@ -21,44 +22,54 @@ import java.util.Optional;
 @Transactional
 public class BankAccountService {
     private final BankAccountRepository bankAccountRepository;
+    private final UserService userService;
     private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
-    public List<BankAccount> getAllUserAccounts(User user){
-        return bankAccountRepository.findAllByUser(user);
+    public List<BankAccount> getAllUserAccounts(Long userId){
+        return bankAccountRepository.findAllByUserId(userId);
     }
 
     @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRES_NEW)
-    public BankAccount addNewBankAccountToUser(User user, BankAccount bankAccount) {
-        user.getBankAccounts().stream()
-                .filter(b -> b.getName().equals(bankAccount.getName()))
+    public BankAccount addNewBankAccountToUser(Long userId, BankAccountDto bankAccountDto) {
+        Optional<User> userOptional = userService.findUserById(userId);
+        if(userOptional.isEmpty()){
+            throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
+        }
+        bankAccountRepository.findAllByUserId(userId).stream()
+                .filter(b -> b.getName().equals(bankAccountDto.getName()))
                 .findAny()
                 .ifPresent(b -> {
                     throw new IllegalArgumentException("У пользователя уже есть такой счет");
                 });
-        if (bankAccount.getBalance() == null || bankAccount.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+        if (bankAccountDto.getBalance() == null || bankAccountDto.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw new NotEnoughMoneyException("Баланс на счете меньше нуля");
         }
+        BankAccount bankAccount = BankAccount.builder()
+                .user(userOptional.get())
+                .balance(bankAccountDto.getBalance())
+                .name(bankAccountDto.getName())
+                .build();
         BankAccount saved = bankAccountRepository.save(bankAccount);
-        kafkaService.sendMessage(user, String.format("Добавление банковского счета %s с начальным балансом %s", saved.getName(), saved.getBalance().toString()));
-        user.getBankAccounts().add(saved);
+        kafkaService.sendMessage(userId, String.format("Добавление банковского счета %s с начальным балансом %s", saved.getName(), saved.getBalance().toString()));
         return saved;
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ, propagation = Propagation.REQUIRED)
-    public void changeBalance(BankAccount bankAccount, BigDecimal newBalance) {
+    public String changeBalance(Long bankAccountId, BigDecimal newBalance) {
+        Optional<BankAccount> bankAccountOptional = bankAccountRepository.findById(bankAccountId);
+        if(bankAccountOptional.isEmpty()){
+            throw new DBRecordNotFoundException("Счета с id " + bankAccountId + " не существует");
+        }
         if(newBalance.compareTo(BigDecimal.ZERO) < 0){
             throw new NotEnoughMoneyException("Новый баланс меньше нуля");
         }
-        bankAccountRepository.changeBalance(bankAccount.getId(), newBalance);
+        bankAccountRepository.changeBalance(bankAccountOptional.get().getId(), newBalance);
+        return "Баланс изменен";
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public Optional<BankAccount> findById(Long id) {
-        Optional<BankAccount> bankAccountOptional = bankAccountRepository.findById(id);
-        if(bankAccountOptional.isEmpty()){
-            throw new DBRecordNotFoundException("Счет с id " + id + " не существует");
-        }
-        return bankAccountOptional;
+        return bankAccountRepository.findById(id);
     }
 }

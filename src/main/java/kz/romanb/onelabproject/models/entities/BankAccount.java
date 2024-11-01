@@ -1,4 +1,4 @@
-package kz.romanb.onelabproject.entities;
+package kz.romanb.onelabproject.models.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
