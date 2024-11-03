@@ -3,6 +3,9 @@ package kz.romanb.onelabproject.models.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Table(name = "cost_category")
@@ -23,6 +26,13 @@ public class CostCategory {
     @Enumerated(EnumType.STRING)
     @Column(name = "category_type", nullable = false)
     private CostCategoryType categoryType;
+    @OneToMany(
+            cascade = CascadeType.ALL,
+            mappedBy = "costCategory",
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<Operation> costCategoryOperations = new ArrayList<>();
 
     public enum CostCategoryType {
         EXPENSE, INCOME

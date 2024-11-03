@@ -45,13 +45,11 @@ public class OperationController {
     public List<OperationDto> getOperations(@RequestParam(required = false) @DateTimeFormat(pattern = "dd.MM.yyyy") Optional<LocalDate> fromDate,
                                             @RequestParam(required = false) @DateTimeFormat(pattern = "dd.MM.yyyy") Optional<LocalDate> toDate) {
         List<Operation> operations;
-        if(fromDate.isPresent() && toDate.isPresent()){
+        if (fromDate.isPresent() && toDate.isPresent()) {
             operations = operationService.findAllOperationsBetweenDates(fromDate.get(), toDate.get());
-        }
-        else if(fromDate.isPresent()){
+        } else if (fromDate.isPresent()) {
             operations = operationService.findAllOperationsForDate(fromDate.get());
-        }
-        else{
+        } else {
             operations = operationService.findAllOperations();
         }
         return operations.stream()
@@ -61,7 +59,7 @@ public class OperationController {
     }
 
     @GetMapping("/users/{userId}/operations")
-    public List<OperationDto> getAllOperationsByUser(@PathVariable Long userId){
+    public List<OperationDto> getAllOperationsByUser(@PathVariable Long userId) {
         List<Operation> operations = operationService.findAllOperationsByUser(userId);
         return operations.stream()
                 .map(this::makeDto)
@@ -70,7 +68,7 @@ public class OperationController {
     }
 
     @GetMapping("/cost-categories/{costCategoryId}/operations")
-    public List<OperationDto> getAllOperationsByCostCategory(@PathVariable Long costCategoryId){
+    public List<OperationDto> getAllOperationsByCostCategory(@PathVariable Long costCategoryId) {
         List<Operation> operations = operationService.findAllOperationsByCostCategory(costCategoryId);
         return operations.stream()
                 .map(this::makeDto)
@@ -79,11 +77,11 @@ public class OperationController {
     }
 
     @GetMapping("/sum")
-    public SumResponse getSum(@RequestBody List<OperationDto> operations){
+    public SumResponse getSum(@RequestBody List<OperationDto> operations) {
         return operationService.getSum(operations);
     }
 
-    private OperationDto makeDto(Operation operation){
+    private OperationDto makeDto(Operation operation) {
         OperationDto dto = modelMapper.map(operation, OperationDto.class);
         dto.setBankAccountDto(modelMapper.map(operation.getBankAccount(), BankAccountDto.class));
         dto.setCostCategoryDto(modelMapper.map(operation.getCostCategory(), CostCategoryDto.class));

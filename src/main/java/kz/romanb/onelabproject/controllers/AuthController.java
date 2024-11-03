@@ -26,16 +26,16 @@ public class AuthController {
 
     @PostMapping("/new-access-token")
     public ResponseEntity<JwtResponse> getNewAccessToken(@RequestBody JwtRefreshRequest request) {
-        return ResponseEntity.ok(authService.getNewAccessToken(request.getRefreshToken()));
+        return ResponseEntity.ok(authService.getNewAccessToken(request.refreshToken()));
     }
 
     @PostMapping("/new-refresh-token")
     public ResponseEntity<JwtResponse> getNewRefreshToken(@RequestBody JwtRefreshRequest request) {
-        return ResponseEntity.ok(authService.getNewRefreshToken(request.getRefreshToken()));
+        return ResponseEntity.ok(authService.getNewRefreshToken(request.refreshToken()));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<HttpStatus> logout(@RequestBody JwtRefreshRequest request) {
-        return authService.logout(request.getRefreshToken()) ? ResponseEntity.ok(HttpStatus.OK) : ResponseEntity.badRequest().body(HttpStatus.BAD_REQUEST);
+        return authService.logout(request.refreshToken()) ? ResponseEntity.ok(HttpStatus.OK) : ResponseEntity.badRequest().body(HttpStatus.BAD_REQUEST);
     }
 }

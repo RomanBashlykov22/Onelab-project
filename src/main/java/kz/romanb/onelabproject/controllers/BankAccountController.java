@@ -23,36 +23,33 @@ public class BankAccountController {
     private final ModelMapper modelMapper;
 
     @GetMapping("/users/{userId}/bank-accounts")
-    public List<BankAccountDto> getUsersBankAccounts(@PathVariable Long userId){
-        return bankAccountService.getAllUserAccounts(userId).stream().map(b -> {
-            BankAccountDto dto = modelMapper.map(b, BankAccountDto.class);
-            dto.setUserDto(modelMapper.map(b.getUser(), UserDto.class));
-            return dto;
-        }).toList();
+    public List<BankAccountDto> getUsersBankAccounts(@PathVariable Long userId) {
+        return bankAccountService.getAllUserAccounts(userId).stream().map(this::makeDto).toList();
     }
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/users/{userId}/bank-accounts")
-    public BankAccountDto addNewBankAccount(@PathVariable Long userId, @RequestBody BankAccountDto bankAccountDto){
-        BankAccount bankAccount = bankAccountService.addNewBankAccountToUser(userId, bankAccountDto);
-        BankAccountDto saved = modelMapper.map(bankAccount, BankAccountDto.class);
-        saved.setUserDto(modelMapper.map(bankAccount.getUser(), UserDto.class));
-        return saved;
+    public BankAccountDto addNewBankAccount(@PathVariable Long userId, @RequestBody BankAccountDto bankAccountDto) {
+        return makeDto(bankAccountService.addNewBankAccountToUser(userId, bankAccountDto));
     }
 
     @PatchMapping("/bank-accounts/{bankAccountId}")
-    public ResponseEntity<String> changeBalance(@PathVariable Long bankAccountId, @RequestParam BigDecimal amount){
+    public ResponseEntity<String> changeBalance(@PathVariable Long bankAccountId, @RequestParam BigDecimal amount) {
         return ResponseEntity.ok(bankAccountService.changeBalance(bankAccountId, amount));
     }
 
     @GetMapping("/bank-accounts/{bankAccountId}")
-    public BankAccountDto getBankAccountById(@PathVariable Long bankAccountId){
+    public BankAccountDto getBankAccountById(@PathVariable Long bankAccountId) {
         Optional<BankAccount> bankAccountOptional = bankAccountService.findById(bankAccountId);
-        if(bankAccountOptional.isEmpty()){
+        if (bankAccountOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Счета с id " + bankAccountId + " не существует");
         }
-        BankAccountDto bankAccountDto = modelMapper.map(bankAccountOptional.get(), BankAccountDto.class);
-        bankAccountDto.setUserDto(modelMapper.map(bankAccountOptional.get().getUser(), UserDto.class));
+        return makeDto(bankAccountOptional.get());
+    }
+
+    private BankAccountDto makeDto(BankAccount bankAccount) {
+        BankAccountDto bankAccountDto = modelMapper.map(bankAccount, BankAccountDto.class);
+        bankAccountDto.setUserDto(modelMapper.map(bankAccount.getUser(), UserDto.class));
         return bankAccountDto;
     }
 }

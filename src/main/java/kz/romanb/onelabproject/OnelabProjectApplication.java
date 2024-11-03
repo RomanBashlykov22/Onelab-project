@@ -13,10 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Set;
 
-@SpringBootApplication(scanBasePackages = "kz.romanb.onelabproject")
+@SpringBootApplication
 public class OnelabProjectApplication {
 
     public static void main(String[] args) {
@@ -29,7 +28,7 @@ public class OnelabProjectApplication {
             BankAccountRepository bankAccountRepository,
             CostCategoryRepository costCategoryRepository,
             OperationRepository operationRepository,
-            PasswordEncoder passwordEncoder){
+            PasswordEncoder passwordEncoder) {
         return args -> {
             User user = User.builder()
                     .email("roman.bash14@mail.ru")

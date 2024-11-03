@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -71,7 +70,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testLoadUserByName(){
+    void testLoadUserByName() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.of(userFromDB));
 
         UserDetails result = userService.loadUserByUsername("user@mail.ru");
@@ -81,7 +80,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testLoadUserByUnknownName(){
+    void testLoadUserByUnknownName() {
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class, () -> userService.loadUserByUsername("user@mial.ru"));
@@ -91,7 +90,7 @@ class UserServiceTest {
 
     @Test
     void testRegistration() {
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(request.email())).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(userFromDB);
 
         User result = userService.registration(request);
@@ -99,16 +98,16 @@ class UserServiceTest {
         assertNotNull(result);
         assertEquals(result.getId(), userFromDB.getId());
         assertEquals(result.getUsername(), userFromDB.getUsername());
-        verify(userRepository, times(1)).findByEmail(request.getEmail());
+        verify(userRepository, times(1)).findByEmail(request.email());
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void testRegistrationWithExistingEmail() {
-        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(userFromDB));
+        when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(userFromDB));
 
         assertThrows(RegistrationException.class, () -> userService.registration(request));
-        verify(userRepository, times(1)).findByEmail(request.getEmail());
+        verify(userRepository, times(1)).findByEmail(request.email());
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -153,7 +152,7 @@ class UserServiceTest {
     }
 
     @Test
-    void deleteUserWhenUserExists(){
+    void deleteUserWhenUserExists() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(userFromDB));
         when(accessTokenService.deleteToken(userFromDB)).thenReturn(true);
         when(refreshTokenService.deleteToken(userFromDB)).thenReturn(true);
@@ -168,7 +167,7 @@ class UserServiceTest {
     }
 
     @Test
-    void deleteUserWhenUserDoesNotExists(){
+    void deleteUserWhenUserDoesNotExists() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(DBRecordNotFoundException.class, () -> userService.deleteUser(1L));

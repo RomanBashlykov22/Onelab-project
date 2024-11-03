@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "bank_account")
@@ -23,4 +25,11 @@ public class BankAccount {
     private String name;
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
+    @OneToMany(
+            cascade = CascadeType.ALL,
+            mappedBy = "bankAccount",
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<Operation> operations = new ArrayList<>();
 }

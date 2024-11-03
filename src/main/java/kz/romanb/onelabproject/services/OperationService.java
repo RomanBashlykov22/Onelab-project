@@ -30,12 +30,12 @@ public class OperationService {
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRED)
     public Operation createOperation(Long bankAccountId, Long costCategoryId, BigDecimal amount) {
         Optional<BankAccount> bankAccountOptional = bankAccountService.findById(bankAccountId);
-        if(bankAccountOptional.isEmpty()){
+        if (bankAccountOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Счет с id " + bankAccountId + " не существует");
         }
 
         Optional<CostCategory> costCategoryOptional = costCategoryService.findById(costCategoryId);
-        if(costCategoryOptional.isEmpty()){
+        if (costCategoryOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Категория с id " + costCategoryId + " не существует");
         }
 
@@ -48,7 +48,7 @@ public class OperationService {
         } else {
             newBalance = newBalance.add(amount);
         }
-        if(newBalance.compareTo(BigDecimal.ZERO) < 0){
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new NotEnoughMoneyException("На счете не достаточно средств");
         }
 
@@ -76,11 +76,11 @@ public class OperationService {
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsByUser(Long userId) {
         Optional<User> userOptional = userService.findUserById(userId);
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
         }
         List<Operation> operations = new ArrayList<>();
-        for (BankAccount b: userOptional.get().getBankAccounts()) {
+        for (BankAccount b : userOptional.get().getBankAccounts()) {
             operations.addAll(operationRepository.findAllByBankAccount(b));
         }
         return operations.stream()
@@ -91,7 +91,7 @@ public class OperationService {
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<Operation> findAllOperationsByCostCategory(Long costCategoryId) {
         Optional<CostCategory> costCategoryOptional = costCategoryService.findById(costCategoryId);
-        if(costCategoryOptional.isEmpty()){
+        if (costCategoryOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Категории с id " + costCategoryId + " не существует");
         }
         List<Operation> operations = operationRepository.findAllByCostCategory(costCategoryOptional.get());

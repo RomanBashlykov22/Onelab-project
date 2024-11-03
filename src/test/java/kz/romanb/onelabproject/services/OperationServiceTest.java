@@ -76,7 +76,7 @@ class OperationServiceTest {
     }
 
     @Test
-    void testCreateOperationWhenBankAccountDoesNotExists(){
+    void testCreateOperationWhenBankAccountDoesNotExists() {
         when(bankAccountService.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(DBRecordNotFoundException.class, () -> operationService.createOperation(1L, 1L, new BigDecimal(10)));
@@ -88,7 +88,7 @@ class OperationServiceTest {
     }
 
     @Test
-    void testCreateOperationWhenCostCategoryDoesNotExists(){
+    void testCreateOperationWhenCostCategoryDoesNotExists() {
         when(bankAccountService.findById(any())).thenReturn(Optional.of(bankAccountWithBalance));
         when(costCategoryService.findById(any())).thenReturn(Optional.empty());
 
@@ -243,7 +243,7 @@ class OperationServiceTest {
     }
 
     @Test
-    void testFindAllOperationsByCostCategoryWhenCategoryDoesNotExists(){
+    void testFindAllOperationsByCostCategoryWhenCategoryDoesNotExists() {
         when(costCategoryService.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(DBRecordNotFoundException.class, () -> operationService.findAllOperationsByCostCategory(expenseCategory.getId()));
@@ -345,7 +345,7 @@ class OperationServiceTest {
     }
 
     @Test
-    void testFindAllOperations(){
+    void testFindAllOperations() {
         Operation operation1 = Operation.builder().build();
         Operation operation2 = Operation.builder().build();
         Operation operation3 = Operation.builder().date(LocalDate.of(2024, 8, 1)).build();

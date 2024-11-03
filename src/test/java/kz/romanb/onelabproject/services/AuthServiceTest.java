@@ -7,23 +7,18 @@ import kz.romanb.onelabproject.models.dto.JwtRequest;
 import kz.romanb.onelabproject.models.dto.JwtResponse;
 import kz.romanb.onelabproject.models.entities.AccessToken;
 import kz.romanb.onelabproject.models.entities.RefreshToken;
-import kz.romanb.onelabproject.models.entities.Role;
 import kz.romanb.onelabproject.models.entities.User;
 import kz.romanb.onelabproject.security.JwtProvider;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -52,15 +47,13 @@ class AuthServiceTest {
         MockitoAnnotations.openMocks(this);
         accessTokenStr = "Access";
         refreshTokenStr = "Refresh";
-        jwtRequest = new JwtRequest();
-        jwtRequest.setEmail("user@mail.ru");
-        jwtRequest.setPassword("123");
-        user = User.builder().id(1L).email(jwtRequest.getEmail()).password(jwtRequest.getPassword()).build();
+        jwtRequest = new JwtRequest("user@mail.ru", "123");
+        user = User.builder().id(1L).email(jwtRequest.email()).password(jwtRequest.password()).build();
     }
 
     @Test
     void testLoginWithUpdateToken() {
-        when(userService.loadUserByUsername(jwtRequest.getEmail())).thenReturn(user);
+        when(userService.loadUserByUsername(jwtRequest.email())).thenReturn(user);
         when(passwordEncoder.matches(any(), any())).thenReturn(true);
         when(jwtProvider.generateAccessToken(any())).thenReturn(accessTokenStr);
         when(jwtProvider.generateRefreshToken(any())).thenReturn(refreshTokenStr);
@@ -75,7 +68,7 @@ class AuthServiceTest {
 
         assertEquals(accessTokenStr, jwtResponse.getAccessToken());
         assertEquals(refreshTokenStr, jwtResponse.getRefreshToken());
-        verify(userService, times(1)).loadUserByUsername(jwtRequest.getEmail());
+        verify(userService, times(1)).loadUserByUsername(jwtRequest.email());
         verify(passwordEncoder, times(1)).matches(any(), any());
         verify(jwtProvider, times(2)).getAccessClaims(any());
         verify(jwtProvider, times(2)).getRefreshClaims(any());
@@ -87,7 +80,7 @@ class AuthServiceTest {
 
     @Test
     void testLoginWithSaveTokens() {
-        when(userService.loadUserByUsername(jwtRequest.getEmail())).thenReturn(user);
+        when(userService.loadUserByUsername(jwtRequest.email())).thenReturn(user);
         when(passwordEncoder.matches(any(), any())).thenReturn(true);
         when(jwtProvider.generateAccessToken(any())).thenReturn(accessTokenStr);
         when(jwtProvider.generateRefreshToken(any())).thenReturn(refreshTokenStr);
@@ -102,7 +95,7 @@ class AuthServiceTest {
 
         assertEquals(accessTokenStr, jwtResponse.getAccessToken());
         assertEquals(refreshTokenStr, jwtResponse.getRefreshToken());
-        verify(userService, times(1)).loadUserByUsername(jwtRequest.getEmail());
+        verify(userService, times(1)).loadUserByUsername(jwtRequest.email());
         verify(passwordEncoder, times(1)).matches(any(), any());
         verify(jwtProvider, times(2)).getAccessClaims(any());
         verify(jwtProvider, times(2)).getRefreshClaims(any());
@@ -113,12 +106,12 @@ class AuthServiceTest {
     }
 
     @Test
-    void testLoginWhenUserDoesNotExists(){
-        when(userService.loadUserByUsername(jwtRequest.getEmail())).thenThrow(UsernameNotFoundException.class);
+    void testLoginWhenUserDoesNotExists() {
+        when(userService.loadUserByUsername(jwtRequest.email())).thenThrow(UsernameNotFoundException.class);
 
         assertThrows(UsernameNotFoundException.class, () -> authService.login(jwtRequest));
 
-        verify(userService, times(1)).loadUserByUsername(jwtRequest.getEmail());
+        verify(userService, times(1)).loadUserByUsername(jwtRequest.email());
         verify(passwordEncoder, times(0)).matches(any(), any());
         verify(jwtProvider, times(0)).getAccessClaims(any());
         verify(jwtProvider, times(0)).getRefreshClaims(any());
@@ -131,13 +124,13 @@ class AuthServiceTest {
     }
 
     @Test
-    void testLoginWithBadCredentials(){
-        when(userService.loadUserByUsername(jwtRequest.getEmail())).thenReturn(user);
+    void testLoginWithBadCredentials() {
+        when(userService.loadUserByUsername(jwtRequest.email())).thenReturn(user);
         when(passwordEncoder.matches(any(), any())).thenReturn(false);
 
         assertThrows(AuthException.class, () -> authService.login(jwtRequest));
 
-        verify(userService, times(1)).loadUserByUsername(jwtRequest.getEmail());
+        verify(userService, times(1)).loadUserByUsername(jwtRequest.email());
         verify(passwordEncoder, times(1)).matches(any(), any());
         verify(jwtProvider, times(0)).getAccessClaims(any());
         verify(jwtProvider, times(0)).getRefreshClaims(any());
@@ -150,7 +143,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testGenerateNewAccessTokenWithValidRefreshToken(){
+    void testGenerateNewAccessTokenWithValidRefreshToken() {
         when(jwtProvider.validateRefreshToken(refreshTokenStr)).thenReturn(true);
         when(jwtProvider.getRefreshClaims(refreshTokenStr)).thenReturn(mockedRefreshTokenClaims());
         when(userService.loadUserByUsername(user.getEmail())).thenReturn(user);
@@ -173,14 +166,14 @@ class AuthServiceTest {
     }
 
     @Test
-    void testGenerateNewAccessTokenWithNonValidRefreshToken(){
+    void testGenerateNewAccessTokenWithNonValidRefreshToken() {
         when(jwtProvider.validateRefreshToken(refreshTokenStr)).thenReturn(false);
 
         assertThrows(AuthException.class, () -> authService.getNewAccessToken(refreshTokenStr));
     }
 
     @Test
-    void testGenerateNewRefreshTokenWithValidRefreshToken(){
+    void testGenerateNewRefreshTokenWithValidRefreshToken() {
         when(jwtProvider.validateRefreshToken(refreshTokenStr)).thenReturn(true);
         when(jwtProvider.getRefreshClaims(refreshTokenStr)).thenReturn(mockedRefreshTokenClaims());
         when(userService.loadUserByUsername(user.getEmail())).thenReturn(user);
@@ -208,14 +201,14 @@ class AuthServiceTest {
     }
 
     @Test
-    void testGenerateNewRefreshTokenWithNonValidRefreshToken(){
+    void testGenerateNewRefreshTokenWithNonValidRefreshToken() {
         when(jwtProvider.validateRefreshToken(refreshTokenStr)).thenReturn(false);
 
         assertThrows(AuthException.class, () -> authService.getNewRefreshToken(refreshTokenStr));
     }
 
     @Test
-    void logoutWithValidToken(){
+    void logoutWithValidToken() {
         when(jwtProvider.validateRefreshToken(refreshTokenStr)).thenReturn(true);
         when(jwtProvider.getRefreshClaims(refreshTokenStr)).thenReturn(mockedRefreshTokenClaims());
         when(userService.loadUserByUsername(user.getEmail())).thenReturn(user);
@@ -233,7 +226,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void testLogoutWithNonValidToken(){
+    void testLogoutWithNonValidToken() {
         when(jwtProvider.validateRefreshToken(refreshTokenStr)).thenReturn(false);
 
         boolean result = authService.logout(refreshTokenStr);

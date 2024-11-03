@@ -26,14 +26,14 @@ public class BankAccountService {
     private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
-    public List<BankAccount> getAllUserAccounts(Long userId){
+    public List<BankAccount> getAllUserAccounts(Long userId) {
         return bankAccountRepository.findAllByUserId(userId);
     }
 
     @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRES_NEW)
     public BankAccount addNewBankAccountToUser(Long userId, BankAccountDto bankAccountDto) {
         Optional<User> userOptional = userService.findUserById(userId);
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
         }
         bankAccountRepository.findAllByUserId(userId).stream()
@@ -58,10 +58,10 @@ public class BankAccountService {
     @Transactional(isolation = Isolation.REPEATABLE_READ, propagation = Propagation.REQUIRED)
     public String changeBalance(Long bankAccountId, BigDecimal newBalance) {
         Optional<BankAccount> bankAccountOptional = bankAccountRepository.findById(bankAccountId);
-        if(bankAccountOptional.isEmpty()){
+        if (bankAccountOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Счета с id " + bankAccountId + " не существует");
         }
-        if(newBalance.compareTo(BigDecimal.ZERO) < 0){
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new NotEnoughMoneyException("Новый баланс меньше нуля");
         }
         bankAccountRepository.changeBalance(bankAccountOptional.get().getId(), newBalance);

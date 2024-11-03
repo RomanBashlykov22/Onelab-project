@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EventsHandler {
     @KafkaHandler
-    public void handle(@Payload KafkaEvent event){
-        log.info("Пользователь с id {} совершил действие: {}", event.getUserId(), event.getMessage());
+    public void handle(@Payload KafkaEvent event) {
+        log.info("Пользователь с id {} совершил действие: {}", event.userId(), event.message());
     }
 }

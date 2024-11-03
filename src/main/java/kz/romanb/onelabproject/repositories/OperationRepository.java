@@ -12,7 +12,10 @@ import java.util.List;
 @Repository
 public interface OperationRepository extends JpaRepository<Operation, Long> {
     List<Operation> findAllByBankAccount(BankAccount bankAccount);
+
     List<Operation> findAllByCostCategory(CostCategory costCategory);
+
     List<Operation> findAllByDate(LocalDate date);
+
     List<Operation> findAllByDateBetween(LocalDate start, LocalDate end);
 }

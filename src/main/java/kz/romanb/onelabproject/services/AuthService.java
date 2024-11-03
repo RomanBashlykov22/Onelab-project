@@ -17,6 +17,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthService {
     private final UserService userService;
     private final AccessTokenService accessTokenService;
@@ -24,11 +25,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    @Transactional
     public JwtResponse login(JwtRequest jwtRequest) {
-        User user = (User) userService.loadUserByUsername(jwtRequest.getEmail());
+        User user = (User) userService.loadUserByUsername(jwtRequest.email());
 
-        if (passwordEncoder.matches(jwtRequest.getPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(jwtRequest.password(), user.getPassword())) {
             String accessTokenStr = jwtProvider.generateAccessToken(user);
             AccessToken accessToken = AccessToken.builder()
                     .user(user)
@@ -63,7 +63,6 @@ public class AuthService {
         }
     }
 
-    @Transactional
     public JwtResponse getNewAccessToken(String refreshToken) {
         if (jwtProvider.validateRefreshToken(refreshToken)) {
             Claims claims = jwtProvider.getRefreshClaims(refreshToken);
@@ -121,7 +120,6 @@ public class AuthService {
         throw new AuthException("Неверный JWT токен");
     }
 
-    @Transactional
     public boolean logout(String refreshToken) {
         if (jwtProvider.validateRefreshToken(refreshToken)) {
             Claims claims = jwtProvider.getRefreshClaims(refreshToken);

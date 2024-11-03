@@ -69,7 +69,7 @@ class BankAccountServiceTest {
     }
 
     @Test
-    void testAddNewBankAccountToUserWhenUserDoesNotExists(){
+    void testAddNewBankAccountToUserWhenUserDoesNotExists() {
         when(userService.findUserById(1L)).thenReturn(Optional.empty());
 
         assertThrows(DBRecordNotFoundException.class, () -> bankAccountService.addNewBankAccountToUser(1L, BankAccountDto.builder().build()));
@@ -140,7 +140,7 @@ class BankAccountServiceTest {
     }
 
     @Test
-    void testChangeBalanceWhenBankAccountDoesNotExists(){
+    void testChangeBalanceWhenBankAccountDoesNotExists() {
         when(bankAccountRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(DBRecordNotFoundException.class, () -> bankAccountService.changeBalance(1L, new BigDecimal(1)));

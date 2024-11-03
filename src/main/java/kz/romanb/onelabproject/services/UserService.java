@@ -44,14 +44,14 @@ public class UserService implements UserDetailsService {
 
     @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRES_NEW)
     public User registration(RegistrationRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(request.email()).isPresent()) {
             log.error("Попытка зарегистрировать пользователя с существующим E-mail");
             throw new RegistrationException("Пользователь с таким E-mail уже существует");
         }
         User user = User.builder()
-                .email(request.getEmail())
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword().trim()))
+                .email(request.email())
+                .username(request.username())
+                .password(passwordEncoder.encode(request.password().trim()))
                 .roles(Collections.singleton(Role.USER))
                 .isAccountNonExpired(true)
                 .isAccountNonLocked(true)
@@ -76,11 +76,10 @@ public class UserService implements UserDetailsService {
     @Transactional
     public String deleteUser(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
-        if(userOptional.isEmpty()) {
+        if (userOptional.isEmpty()) {
             log.error("Пользователь с id {} не найден", userId);
             throw new DBRecordNotFoundException("Пользователь не найден");
-        }
-        else{
+        } else {
             accessTokenService.deleteToken(userOptional.get());
             refreshTokenService.deleteToken(userOptional.get());
             userRepository.delete(userOptional.get());

@@ -23,14 +23,14 @@ public class CostCategoryService {
     private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
-    public List<CostCategory> getAllUserCostCategories(Long userId){
+    public List<CostCategory> getAllUserCostCategories(Long userId) {
         return costCategoryRepository.findAllByUserId(userId);
     }
 
     @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRES_NEW)
     public CostCategory addNewCostCategoryToUser(Long userId, CostCategoryDto costCategoryDto) {
         Optional<User> userOptional = userService.findUserById(userId);
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
         }
         costCategoryRepository.findAllByUserId(userId).stream()
@@ -39,7 +39,7 @@ public class CostCategoryService {
                 .ifPresent(b -> {
                     throw new IllegalArgumentException("У пользователя уже есть такая категория расходов");
                 });
-        if(costCategoryDto.getCategoryType() == null){
+        if (Optional.ofNullable(costCategoryDto.getCategoryType()).isEmpty()) {
             throw new IllegalArgumentException("Не указан тип категории");
         }
         CostCategory costCategory = CostCategory.builder()

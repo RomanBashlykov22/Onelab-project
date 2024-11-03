@@ -75,7 +75,7 @@ class CostCategoryServiceTest {
     }
 
     @Test
-    void testAddNewCostCategoryToUserWhenUserDoesNotExists(){
+    void testAddNewCostCategoryToUserWhenUserDoesNotExists() {
         when(userService.findUserById(user.getId())).thenReturn(Optional.empty());
 
         assertThrows(DBRecordNotFoundException.class, () -> costCategoryService.addNewCostCategoryToUser(user.getId(), CostCategoryDto.builder().build()));

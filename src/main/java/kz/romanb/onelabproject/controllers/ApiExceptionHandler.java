@@ -26,34 +26,16 @@ public class ApiExceptionHandler {
             DBRecordNotFoundException.class,
             UsernameNotFoundException.class,
             NotEnoughMoneyException.class,
-            IllegalArgumentException.class
+            IllegalArgumentException.class,
+            NullPointerException.class
     })
     public ResponseEntity<ErrorDto> handleBadRequest(Exception e) {
-        return ResponseEntity.badRequest()
-                .body(
-                        ErrorDto.builder()
-                                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                                .description(e.getMessage())
-                                .build()
-                );
+        return ResponseEntity.badRequest().body(new ErrorDto(HttpStatus.BAD_REQUEST.getReasonPhrase(), e.getMessage()));
     }
 
     @ExceptionHandler({AuthException.class, AccessDeniedException.class})
-    public ResponseEntity<ErrorDto> handleAuthException(Exception e){
-        HttpStatus httpStatus;
-        if(e instanceof AccessDeniedException){
-            httpStatus = HttpStatus.FORBIDDEN;
-        }
-        else {
-            httpStatus = getStatus(e.getClass());
-        }
-        return ResponseEntity.status(httpStatus)
-                .body(
-                        ErrorDto.builder()
-                                .error(httpStatus.getReasonPhrase())
-                                .description(e.getMessage())
-                                .build()
-                );
+    public ResponseEntity<ErrorDto> handleAuthException(Exception e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorDto(HttpStatus.FORBIDDEN.getReasonPhrase(), e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -62,30 +44,18 @@ public class ApiExceptionHandler {
         List<String> errors = bindingResult.getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
-        return ResponseEntity.badRequest()
-                .body(
-                        ErrorDto.builder()
-                                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                                .description(errors.toString())
-                                .build()
-                );
+        return ResponseEntity.badRequest().body(new ErrorDto(HttpStatus.BAD_REQUEST.getReasonPhrase(), errors.toString()));
     }
 
     @ExceptionHandler({PersistenceException.class, Exception.class})
-    public ResponseEntity<ErrorDto> handleInternalServerErrors(PersistenceException e) {
+    public ResponseEntity<ErrorDto> handleInternalServerErrors(Exception e) {
         HttpStatus httpStatus = getStatus(e.getClass());
-        return ResponseEntity.status(httpStatus)
-                .body(
-                        ErrorDto.builder()
-                                .error(httpStatus.getReasonPhrase())
-                                .description(e.getMessage())
-                                .build()
-                );
+        return ResponseEntity.status(httpStatus).body(new ErrorDto(httpStatus.getReasonPhrase(), e.getMessage()));
     }
 
-    private HttpStatus getStatus(Class<?> clazz){
+    private HttpStatus getStatus(Class<?> clazz) {
         ResponseStatus responseStatus = clazz.getAnnotation(ResponseStatus.class);
-        if(responseStatus != null){
+        if (responseStatus != null) {
             return responseStatus.value();
         }
         return HttpStatus.INTERNAL_SERVER_ERROR;

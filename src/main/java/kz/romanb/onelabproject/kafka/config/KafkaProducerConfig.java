@@ -20,7 +20,7 @@ public class KafkaProducerConfig {
     @Autowired
     private Environment environment;
 
-    private Map<String, Object> producerConfig(){
+    private Map<String, Object> producerConfig() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.producer.bootstrap-servers"));
@@ -31,17 +31,17 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<String, KafkaEvent> producerFactory(){
+    public ProducerFactory<String, KafkaEvent> producerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfig());
     }
 
     @Bean
-    public KafkaTemplate<String, KafkaEvent> kafkaTemplate(){
+    public KafkaTemplate<String, KafkaEvent> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
     @Bean
-    public NewTopic createTopic(){
+    public NewTopic createTopic() {
         return TopicBuilder
                 .name("onelab-topic")
                 .partitions(3)

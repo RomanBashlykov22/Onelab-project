@@ -5,11 +5,9 @@ import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
 import kz.romanb.onelabproject.models.dto.RegistrationRequest;
 import kz.romanb.onelabproject.models.dto.UserDto;
 import kz.romanb.onelabproject.models.entities.User;
-import kz.romanb.onelabproject.security.JwtAuthentication;
 import kz.romanb.onelabproject.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeMap;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,15 +30,15 @@ public class UserController {
 
     @GetMapping("/users/getAllUsers")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public List<UserDto> getAllUsers(){
+    public List<UserDto> getAllUsers() {
         return userService.findAllUsers().stream().map(e -> modelMapper.map(e, UserDto.class)).toList();
     }
 
     @GetMapping("/users/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public UserDto getUserById(@PathVariable Long userId){
+    public UserDto getUserById(@PathVariable Long userId) {
         Optional<User> userOptional = userService.findUserById(userId);
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             throw new DBRecordNotFoundException("Пользователь с id " + userId + " не существует");
         }
         return modelMapper.map(userOptional.get(), UserDto.class);
@@ -48,7 +46,7 @@ public class UserController {
 
     @DeleteMapping("/users/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String deleteUser(@PathVariable Long userId){
+    public String deleteUser(@PathVariable Long userId) {
         return userService.deleteUser(userId);
     }
 }

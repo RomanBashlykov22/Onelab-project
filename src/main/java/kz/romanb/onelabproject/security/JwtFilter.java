@@ -45,12 +45,8 @@ public class JwtFilter extends GenericFilterBean {
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(
                     new ObjectMapper()
-                            .writeValueAsString(
-                                    ErrorDto.builder()
-                                            .error("Unauthorized")
-                                            .description(e.getMessage())
-                                            .build()
-                            ));
+                            .writeValueAsString(new ErrorDto("Unauthorized", e.getMessage()))
+            );
         }
     }
 

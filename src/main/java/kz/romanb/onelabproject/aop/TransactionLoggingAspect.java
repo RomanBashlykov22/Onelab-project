@@ -22,7 +22,7 @@ public class TransactionLoggingAspect {
     }
 
     @Around("transactionalMethods(transactional)")
-    public Object aroundTransaction(ProceedingJoinPoint joinPoint, Transactional transactional) throws Throwable{
+    public Object aroundTransaction(ProceedingJoinPoint joinPoint, Transactional transactional) throws Throwable {
         log.debug("""
                         Начало транзакции в методе {}
                         Тразакция начинается с параметрами: {}
@@ -38,7 +38,7 @@ public class TransactionLoggingAspect {
     }
 
     @AfterThrowing(value = "transactionalMethods(transactional)", throwing = "e")
-    public void afterThrowingTransaction(JoinPoint joinPoint, Transactional transactional, Throwable e){
+    public void afterThrowingTransaction(JoinPoint joinPoint, Transactional transactional, Throwable e) {
         log.debug("Транзакция в методе {} завершилась ошибкой: {}", joinPoint.getSignature().getName(), e.getMessage());
     }
 }

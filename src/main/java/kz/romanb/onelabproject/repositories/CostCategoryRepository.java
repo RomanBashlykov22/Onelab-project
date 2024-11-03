@@ -1,7 +1,6 @@
 package kz.romanb.onelabproject.repositories;
 
 import kz.romanb.onelabproject.models.entities.CostCategory;
-import kz.romanb.onelabproject.models.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
