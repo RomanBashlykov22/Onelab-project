@@ -4,7 +4,6 @@ import kz.romanb.onelabproject.models.dto.CostCategoryDto;
 import kz.romanb.onelabproject.models.entities.CostCategory;
 import kz.romanb.onelabproject.models.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
-import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.CostCategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +20,6 @@ import static org.mockito.Mockito.*;
 class CostCategoryServiceTest {
     @Mock
     CostCategoryRepository costCategoryRepository;
-    @Mock
-    KafkaService kafkaService;
     @Mock
     UserService userService;
     @InjectMocks
@@ -65,6 +62,7 @@ class CostCategoryServiceTest {
 
     @Test
     void testGetAllUserCostCategories() {
+        when(userService.findUserById(1L)).thenReturn(Optional.of(user));
         when(costCategoryRepository.findAllByUserId(user.getId())).thenReturn(user.getCostCategories());
 
         List<CostCategory> costCategories = costCategoryService.getAllUserCostCategories(user.getId());

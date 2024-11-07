@@ -40,8 +40,9 @@ class CostCategoryControllerIntegrationTest {
     @WithMockUser(username = "user@mail.ru", password = "123", authorities = {"USER"})
     void testGetAllUsersCostCategoriesWhenUserDoesNotExists() throws Exception {
         mockMvc.perform(get("/api/users/{userId}/cost-categories", Short.MAX_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0]").doesNotExist());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists())
+                .andExpect(jsonPath("$.description").exists());
     }
 
     @Test

@@ -11,6 +11,7 @@
 - Spring Boot 3.3.4
 - Spring Data JPA
 - Spring Security & JWT
+- OpenAPI (Swagger)
 - H2 Database
 - AOP
 - Kafka
@@ -20,7 +21,12 @@
 - Maven
 
 ### Описание эндпоинтов
-В папке resources лежит Postman-коллекция с запросами.
+В папке resources лежит Postman-коллекция с запросами.  
+
+OpenAPI: http://localhost:8080/swagger-ui/index.html#/  
+Данные для входа:
+- Имя пользователя: roman.bash14@mail.ru
+- Пароль: 123
 #### AuthController
 - HTTP-POST /api/login - для входа в приложение. Генерирует JWT-токены.  
 Пример тела запроса:

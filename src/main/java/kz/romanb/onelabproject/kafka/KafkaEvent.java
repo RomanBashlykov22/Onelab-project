@@ -1,4 +1,4 @@
 package kz.romanb.onelabproject.kafka;
 
-public record KafkaEvent(Long userId, String message) {
+public record KafkaEvent(String userEmail, String message) {
 }

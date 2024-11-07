@@ -760,21 +760,11 @@
 		{
 			"name": "Logout",
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJyb21hbi5iYXNoMTRAbWFpbC5ydSIsImV4cCI6MTczMDQ4Njc5NSwiaWF0IjoxNzMwNDg2NDk1LCJlbWFpbCI6InJvbWFuLmJhc2gxNEBtYWlsLnJ1IiwidXNlcm5hbWUiOiJyYW1pb3JpcyIsImF1dGhvcml0aWVzIjpbIkFETUlOIiwiVVNFUiJdfQ.VY49jwzr0O16-zhhUCOjJVHt0EXtxpyw5__A5n0iUfg13KHK2TIDOxHqYpDzBcuLp2A82jdB4xbSNDCAhlsMSg",
-							"type": "string"
-						}
-					]
-				},
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJyb21hbi5iYXNoMTRAbWFpbC5ydSIsImV4cCI6MTczMTA5MTI5NSwiaWF0IjoxNzMwNDg2NDk1fQ.aYT2m5n5LiDaNE1jP8wv4ZoNehkGoTboMcXqN7lrYz-0_8Vne7tHD0bNUsJfwTITJWyz8rTCNJA1LsygGI2cvg\"\r\n}",
+					"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJyb21hbi5iYXNoMTRAbWFpbC5ydSIsImV4cCI6MTczMTU4NjYzMCwiaWF0IjoxNzMwOTgxODMwfQ.pzLSSlC3A5c58z4DrAZ0goudIiT_1xLhigkyHFm2FpGE7lqTF105P2iGlJE7kKlSWjuPKNZmrq-Slm8RFoabTw\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

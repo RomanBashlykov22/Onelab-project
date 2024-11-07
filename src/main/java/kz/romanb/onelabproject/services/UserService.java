@@ -27,6 +27,9 @@ import java.util.Optional;
 @Slf4j
 @Transactional
 public class UserService implements UserDetailsService {
+    public static final String USER_WITH_EMAIL_DOES_NOT_EXISTS = "Пользователь с таким E-mail не найден";
+    public static final String USER_WITH_EMAIL_ALREADY_EXISTS = "Пользователь с таким E-mail уже существует";
+    public static final String USER_WITH_ID_DOES_NOT_EXISTS = "Пользователь с id %d не существует";
 
     private final UserRepository userRepository;
     private final KafkaService kafkaService;
@@ -38,7 +41,7 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username).orElseThrow(() -> {
             log.error("Пользователь {} не найден", username);
-            throw new UsernameNotFoundException("Пользователь с таким E-mail не найден");
+            throw new UsernameNotFoundException(USER_WITH_EMAIL_DOES_NOT_EXISTS);
         });
     }
 
@@ -46,7 +49,7 @@ public class UserService implements UserDetailsService {
     public User registration(RegistrationRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
             log.error("Попытка зарегистрировать пользователя с существующим E-mail");
-            throw new RegistrationException("Пользователь с таким E-mail уже существует");
+            throw new RegistrationException(USER_WITH_EMAIL_ALREADY_EXISTS);
         }
         User user = User.builder()
                 .email(request.email())
@@ -59,7 +62,7 @@ public class UserService implements UserDetailsService {
                 .isCredentialsNonExpired(true)
                 .build();
         User saved = userRepository.save(user);
-        kafkaService.sendMessage(saved.getId(), "Создание аккаунта");
+        kafkaService.sendMessage(saved.getEmail(), "Создание аккаунта");
         return saved;
     }
 
@@ -78,7 +81,7 @@ public class UserService implements UserDetailsService {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
             log.error("Пользователь с id {} не найден", userId);
-            throw new DBRecordNotFoundException("Пользователь не найден");
+            throw new DBRecordNotFoundException(String.format(USER_WITH_ID_DOES_NOT_EXISTS, userId));
         } else {
             accessTokenService.deleteToken(userOptional.get());
             refreshTokenService.deleteToken(userOptional.get());

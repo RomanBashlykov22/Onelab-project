@@ -5,7 +5,6 @@ import kz.romanb.onelabproject.models.entities.BankAccount;
 import kz.romanb.onelabproject.models.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
 import kz.romanb.onelabproject.exceptions.NotEnoughMoneyException;
-import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.BankAccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,8 +22,6 @@ import static org.mockito.Mockito.*;
 class BankAccountServiceTest {
     @Mock
     BankAccountRepository bankAccountRepository;
-    @Mock
-    KafkaService kafkaService;
     @Mock
     UserService userService;
     @InjectMocks
@@ -59,6 +56,7 @@ class BankAccountServiceTest {
 
     @Test
     void testGetAllUserAccounts() {
+        when(userService.findUserById(1L)).thenReturn(Optional.of(user));
         when(bankAccountRepository.findAllByUserId(1L)).thenReturn(user.getBankAccounts());
 
         List<BankAccount> bankAccounts = bankAccountService.getAllUserAccounts(1L);

@@ -22,6 +22,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class OperationService {
+    public static final String OPERATION_WITH_ID_DOES_NOT_EXISTS = "Операция с id %d не существует";
+
     private final OperationRepository operationRepository;
     private final BankAccountService bankAccountService;
     private final CostCategoryService costCategoryService;
@@ -31,12 +33,12 @@ public class OperationService {
     public Operation createOperation(Long bankAccountId, Long costCategoryId, BigDecimal amount) {
         Optional<BankAccount> bankAccountOptional = bankAccountService.findById(bankAccountId);
         if (bankAccountOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Счет с id " + bankAccountId + " не существует");
+            throw new DBRecordNotFoundException(String.format(BankAccountService.BANK_ACCOUNT_WITH_ID_DOES_NOT_EXISTS, bankAccountId));
         }
 
         Optional<CostCategory> costCategoryOptional = costCategoryService.findById(costCategoryId);
         if (costCategoryOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Категория с id " + costCategoryId + " не существует");
+            throw new DBRecordNotFoundException(String.format(CostCategoryService.COST_CATEGORY_WITH_ID_DOES_NOT_EXISTS, costCategoryId));
         }
 
         BankAccount bankAccount = bankAccountOptional.get();
@@ -77,7 +79,7 @@ public class OperationService {
     public List<Operation> findAllOperationsByUser(Long userId) {
         Optional<User> userOptional = userService.findUserById(userId);
         if (userOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
+            throw new DBRecordNotFoundException(String.format(UserService.USER_WITH_ID_DOES_NOT_EXISTS, userId));
         }
         List<Operation> operations = new ArrayList<>();
         for (BankAccount b : userOptional.get().getBankAccounts()) {
@@ -92,7 +94,7 @@ public class OperationService {
     public List<Operation> findAllOperationsByCostCategory(Long costCategoryId) {
         Optional<CostCategory> costCategoryOptional = costCategoryService.findById(costCategoryId);
         if (costCategoryOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Категории с id " + costCategoryId + " не существует");
+            throw new DBRecordNotFoundException(String.format(CostCategoryService.COST_CATEGORY_WITH_ID_DOES_NOT_EXISTS, costCategoryId));
         }
         List<Operation> operations = operationRepository.findAllByCostCategory(costCategoryOptional.get());
         return operations.stream()

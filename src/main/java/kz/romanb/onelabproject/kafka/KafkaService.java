@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 public class KafkaService {
     private final KafkaTemplate<String, KafkaEvent> kafkaTemplate;
 
-    public void sendMessage(Long userId, String message) {
-        KafkaEvent event = new KafkaEvent(userId, message);
+    public void sendMessage(String userEmail, String message) {
+        KafkaEvent event = new KafkaEvent(userEmail, message);
 
         ProducerRecord<String, KafkaEvent> producerRecord = new ProducerRecord<>("onelab-topic", event);
 

@@ -70,8 +70,8 @@ public class JwtProvider {
         return getClaims(accessToken, accessSecret);
     }
 
-    public Claims getRefreshClaims(String refreshTokenStr) {
-        return getClaims(refreshTokenStr, refreshSecret);
+    public Claims getRefreshClaims(String refreshToken) {
+        return getClaims(refreshToken, refreshSecret);
     }
 
     private Claims getClaims(String token, Key secret) {
@@ -90,12 +90,12 @@ public class JwtProvider {
         return validateToken(refreshToken, refreshSecret);
     }
 
-    private boolean validateToken(String accessToken, Key accessSecret) {
+    private boolean validateToken(String token, Key secret) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(accessSecret)
+                    .setSigningKey(secret)
                     .build()
-                    .parseClaimsJws(accessToken);
+                    .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException expEx) {
             log.error("Истек срок действия токена");

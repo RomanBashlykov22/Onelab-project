@@ -5,7 +5,6 @@ import kz.romanb.onelabproject.models.entities.BankAccount;
 import kz.romanb.onelabproject.models.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
 import kz.romanb.onelabproject.exceptions.NotEnoughMoneyException;
-import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.BankAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +20,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class BankAccountService {
+    public static final String BANK_ACCOUNT_WITH_ID_DOES_NOT_EXISTS = "Счета с id %d не существует";
+
     private final BankAccountRepository bankAccountRepository;
     private final UserService userService;
-    private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<BankAccount> getAllUserAccounts(Long userId) {
+        if (userService.findUserById(userId).isEmpty()) {
+            throw new DBRecordNotFoundException(String.format(UserService.USER_WITH_ID_DOES_NOT_EXISTS, userId));
+        }
         return bankAccountRepository.findAllByUserId(userId);
     }
 
@@ -34,7 +37,7 @@ public class BankAccountService {
     public BankAccount addNewBankAccountToUser(Long userId, BankAccountDto bankAccountDto) {
         Optional<User> userOptional = userService.findUserById(userId);
         if (userOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
+            throw new DBRecordNotFoundException(String.format(UserService.USER_WITH_ID_DOES_NOT_EXISTS, userId));
         }
         bankAccountRepository.findAllByUserId(userId).stream()
                 .filter(b -> b.getName().equals(bankAccountDto.getName()))
@@ -50,16 +53,14 @@ public class BankAccountService {
                 .balance(bankAccountDto.getBalance())
                 .name(bankAccountDto.getName())
                 .build();
-        BankAccount saved = bankAccountRepository.save(bankAccount);
-        kafkaService.sendMessage(userId, String.format("Добавление банковского счета %s с начальным балансом %s", saved.getName(), saved.getBalance().toString()));
-        return saved;
+        return bankAccountRepository.save(bankAccount);
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ, propagation = Propagation.REQUIRED)
     public String changeBalance(Long bankAccountId, BigDecimal newBalance) {
         Optional<BankAccount> bankAccountOptional = bankAccountRepository.findById(bankAccountId);
         if (bankAccountOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Счета с id " + bankAccountId + " не существует");
+            throw new DBRecordNotFoundException(String.format(BANK_ACCOUNT_WITH_ID_DOES_NOT_EXISTS, bankAccountId));
         }
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new NotEnoughMoneyException("Новый баланс меньше нуля");

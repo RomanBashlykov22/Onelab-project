@@ -4,7 +4,6 @@ import kz.romanb.onelabproject.models.dto.CostCategoryDto;
 import kz.romanb.onelabproject.models.entities.CostCategory;
 import kz.romanb.onelabproject.models.entities.User;
 import kz.romanb.onelabproject.exceptions.DBRecordNotFoundException;
-import kz.romanb.onelabproject.kafka.KafkaService;
 import kz.romanb.onelabproject.repositories.CostCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,12 +17,15 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CostCategoryService {
+    public static final String COST_CATEGORY_WITH_ID_DOES_NOT_EXISTS = "Категории с id %d не существует";
     private final CostCategoryRepository costCategoryRepository;
     private final UserService userService;
-    private final KafkaService kafkaService;
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
     public List<CostCategory> getAllUserCostCategories(Long userId) {
+        if (userService.findUserById(userId).isEmpty()) {
+            throw new DBRecordNotFoundException(String.format(UserService.USER_WITH_ID_DOES_NOT_EXISTS, userId));
+        }
         return costCategoryRepository.findAllByUserId(userId);
     }
 
@@ -31,7 +33,7 @@ public class CostCategoryService {
     public CostCategory addNewCostCategoryToUser(Long userId, CostCategoryDto costCategoryDto) {
         Optional<User> userOptional = userService.findUserById(userId);
         if (userOptional.isEmpty()) {
-            throw new DBRecordNotFoundException("Пользователя с id " + userId + " не существует");
+            throw new DBRecordNotFoundException(String.format(UserService.USER_WITH_ID_DOES_NOT_EXISTS, userId));
         }
         costCategoryRepository.findAllByUserId(userId).stream()
                 .filter(c -> c.getName().equals(costCategoryDto.getName()))
@@ -47,9 +49,7 @@ public class CostCategoryService {
                 .name(costCategoryDto.getName())
                 .categoryType(costCategoryDto.getCategoryType())
                 .build();
-        CostCategory saved = costCategoryRepository.save(costCategory);
-        kafkaService.sendMessage(userId, String.format("Добавление категории %s типа %s", saved.getName(), saved.getCategoryType().name()));
-        return saved;
+        return costCategoryRepository.save(costCategory);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED, propagation = Propagation.SUPPORTS)
